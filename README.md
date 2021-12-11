@@ -1,4 +1,4 @@
 # mathlee.github.io
-Gongyang Li's personal website
+Kunye Shen's personal website
 
 Project of My personal website.

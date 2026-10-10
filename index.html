@@ -80,7 +80,11 @@
                     <h2>
                         <hr><a name="news"></a>News (新闻)
                     </h2>
-                    <ul>
+                    <ul class="news-list">
+                        <li>
+                            <p> <span style="color:gray;"><em>2026-10</em></span> One paper has been accepted by Engineering Applications of Artificial Intelligence !</br>
+                                1篇论文被Engineering Applications of Artificial Intelligence录用!</p>
+                        </li>
                         <li>
                             <p> <span style="color:gray;"><em>2026-04</em></span> One paper has been accepted by Pattern Recognition !</br>
                                 1篇论文被Pattern Recognition录用!</p>
@@ -123,6 +127,20 @@
             </td>
         </tr>
     </table>
+    <script>
+        document.querySelectorAll('.news-list').forEach(function (el) {
+            // 设置可视高度为前 5 条新闻的总高度
+            var items = el.querySelectorAll(':scope > li');
+            var h = 0;
+            for (var i = 0; i < Math.min(5, items.length); i++) {
+                h += items[i].offsetHeight;
+            }
+            el.style.maxHeight = h + 'px';
+            el.addEventListener('scroll', function () {
+                el.classList.toggle('scrolled', el.scrollTop > 0);
+            });
+        });
+    </script>
 </body>
 
 </html>

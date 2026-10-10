@@ -4,7 +4,56 @@
     <meta http-equiv="Content-Type" content="text/html;charset=utf-8" />
     <link rel="stylesheet" type="text/css" href="style.css" />
     <title>Kunye Shen</title>
-    <base href="https://kunye-shen.github.io/KunyeShen-Homepage/index.html">
+    <style>
+        .news-shell {
+            position: relative;
+            margin: 0.2em 0 0.8em;
+            transition: background-color 0.2s;
+        }
+
+        .news-shell:hover {
+            background-color: rgba(82, 123, 189, 0.12);
+        }
+
+        .news-list {
+            box-sizing: border-box;
+            height: 200px;
+            margin: 0;
+            padding-right: 1.5em;
+            overflow-y: scroll;
+            scrollbar-width: none;
+        }
+
+        .news-list::-webkit-scrollbar { display: none; }
+
+        .news-scrollbar {
+            position: absolute;
+            top: 0;
+            right: 0.35em;
+            bottom: 0;
+            width: 8px;
+            border-radius: 4px;
+            background: rgba(82, 123, 189, 0.16);
+            cursor: pointer;
+            touch-action: none;
+        }
+
+        .news-scrollbar-thumb {
+            width: 100%;
+            min-height: 24px;
+            border-radius: 4px;
+            background: #8299bd;
+            cursor: grab;
+        }
+
+        .news-shell:hover .news-scrollbar-thumb { background: #527bbd; }
+        .news-scrollbar-thumb:active { cursor: grabbing; }
+
+        @media print {
+            .news-list { height: auto !important; overflow: visible; }
+            .news-scrollbar { display: none; }
+        }
+    </style>
 </head>
 
 <body>
@@ -80,6 +129,7 @@
                     <h2>
                         <hr><a name="news"></a>News (新闻)
                     </h2>
+                    <div class="news-shell">
                     <ul class="news-list">
                         <li>
                             <p> <span style="color:gray;"><em>2026-10</em></span> One paper has been accepted by Engineering Applications of Artificial Intelligence !</br>
@@ -108,6 +158,8 @@
                                 1篇论文新入选ESI高被引论文!</p>
                         </li>
                     </ul>
+                    <div class="news-scrollbar" aria-hidden="true"><div class="news-scrollbar-thumb"></div></div>
+                    </div>
                 </div>
 
                 <div>
@@ -129,16 +181,48 @@
     </table>
     <script>
         document.querySelectorAll('.news-list').forEach(function (el) {
-            // 设置可视高度为前 5 条新闻的总高度
-            var items = el.querySelectorAll(':scope > li');
-            var h = 0;
-            for (var i = 0; i < Math.min(5, items.length); i++) {
-                h += items[i].offsetHeight;
+            var track = el.parentElement.querySelector('.news-scrollbar');
+            var thumb = track.firstElementChild;
+            var dragOffset = 0;
+
+            function updateScrollbar() {
+                var scrollRange = el.scrollHeight - el.clientHeight;
+                track.style.display = scrollRange > 1 ? 'block' : 'none';
+                if (scrollRange <= 1) return;
+                var travel = track.clientHeight;
+                var thumbHeight = Math.min(travel, Math.max(24, travel * el.clientHeight / el.scrollHeight));
+                thumb.style.height = thumbHeight + 'px';
+                thumb.style.transform = 'translateY(' + (el.scrollTop / scrollRange) * (travel - thumbHeight) + 'px)';
             }
-            el.style.maxHeight = h + 'px';
-            el.addEventListener('scroll', function () {
-                el.classList.toggle('scrolled', el.scrollTop > 0);
+
+            function dragScrollbar(event) {
+                var scrollRange = el.scrollHeight - el.clientHeight;
+                var travel = track.clientHeight - thumb.offsetHeight;
+                if (scrollRange <= 0 || travel <= 0) return;
+                var y = event.clientY - track.getBoundingClientRect().top - dragOffset;
+                el.scrollTop = Math.max(0, Math.min(1, y / travel)) * scrollRange;
+            }
+
+            updateScrollbar();
+            window.addEventListener('load', updateScrollbar);
+            window.addEventListener('resize', updateScrollbar);
+            el.addEventListener('scroll', updateScrollbar);
+            track.addEventListener('pointerdown', function (event) {
+                dragOffset = event.target === thumb
+                    ? event.clientY - thumb.getBoundingClientRect().top
+                    : thumb.offsetHeight / 2;
+                track.setPointerCapture(event.pointerId);
+                dragScrollbar(event);
+                event.preventDefault();
             });
+            track.addEventListener('pointermove', function (event) {
+                if (track.hasPointerCapture(event.pointerId)) dragScrollbar(event);
+            });
+            track.addEventListener('wheel', function (event) {
+                el.scrollTop += event.deltaY;
+                event.preventDefault();
+            }, { passive: false });
+
         });
     </script>
 </body>
